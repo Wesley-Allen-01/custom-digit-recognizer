@@ -16,4 +16,10 @@ Matrix applyActivation(const Matrix &a, float (*activation)(float));
 
 float sigmoid(float x);
 
+float sigmoidDerivative(float x);
+
+// float softmax(const Matrix &a, int i);
+
+// float softmaxDerivative(const Matrix &a, int i, int j);
+
 #endif

@@ -73,3 +73,25 @@ Matrix applyActivation(const Matrix &a, float (*activation)(float)) {
 float sigmoid(float x) {
     return 1 / (1 + exp(-x));
 }
+
+float sigmoidDerivative(float x) {
+    return sigmoid(x) * (1 - sigmoid(x));
+}
+
+float softmax(const Matrix &a, int i, int j) {
+    float sum = 0;
+    for (int k = 0; k < a.size(); k++) {
+        sum += exp(a[k][j]);
+    }
+
+    return exp(a[i][j]) / sum;
+
+}
+
+float softmaxDerivative(const Matrix &a, int i, int j, int k) {
+    if (j == k) {
+        return softmax(a, i, j) * (1 - softmax(a, i, j));
+    } else {
+        return -softmax(a, i, j) * softmax(a, i, k);
+    }
+}
