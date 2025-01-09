@@ -1,6 +1,7 @@
 #include "../include/cpu_matrix_ops.h"
 #include <vector>
 #include <iostream>
+#include <cmath> 
 
 Matrix matMul(const Matrix &a, const Matrix &b) {
     int aRows = a.size(), aCols = a[0].size();

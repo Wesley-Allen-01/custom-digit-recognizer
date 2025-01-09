@@ -3,7 +3,10 @@
 
 #include <vector>
 #include <iostream>
-#include "../include/cpu_matrix_ops.h"
+#include "cpu_matrix_ops.h"
+#include <ctime>
+
+
 
 class NeuralNet {
     private:
@@ -21,6 +24,7 @@ class NeuralNet {
         void train(const Matrix &trainingData, const Matrix &trainingLabels, 
                    int epochs, float learningRate);
         std::vector<double> predict(const Matrix &input);
+        const std::vector<Matrix>& getActivations() const { return activations;} 
 };
 
 #endif
