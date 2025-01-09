@@ -177,6 +177,9 @@ void NeuralNet::backward(const Matrix &target, float learningRate)
             // transpose of that:
             Matrix wNextT = transpose(wNext);
 
+            std::cout << "wNextT dimensions: " << wNextT.size() << "x" << wNextT[0].size() << std::endl;
+            std::cout << "currentDelta dimensions: " << currentDelta.size() << "x" << (currentDelta.empty() ? 0 : currentDelta[0].size()) << std::endl;
+
             // Multiply: wNextT * currentDelta 
             Matrix newDelta = matMul(wNextT, currentDelta);
 
@@ -184,6 +187,8 @@ void NeuralNet::backward(const Matrix &target, float learningRate)
             // Actually, that’s the “output” of layerIndex. 
             // We'll use it to get derivative of the sigmoid if we haven't stored z^l.
             Matrix currentActivation = this->activations[layerIndex + 1];
+            
+            std::cout << "newDelta rows: " << newDelta.size() << ", cols: " << (newDelta.empty() ? 0 : newDelta[0].size()) << std::endl;
 
             // Now elementwise multiply by derivative of sigmoid: a * (1 - a).
             for (int i = 0; i < newDelta.size(); i++) {
