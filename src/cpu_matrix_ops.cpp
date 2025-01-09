@@ -79,20 +79,61 @@ float sigmoidDerivative(float x) {
     return sigmoid(x) * (1 - sigmoid(x));
 }
 
-float softmax(const Matrix &a, int i, int j) {
-    float sum = 0;
-    for (int k = 0; k < a.size(); k++) {
-        sum += exp(a[k][j]);
+
+/*
+TODO: adjust softmax for columnwise operations
+*/
+// float softmax(const Matrix &a, int i, int j) {
+//     float sum = 0;
+//     for (int k = 0; k < a.size(); k++) {
+//         sum += exp(a[k][j]);
+//     }
+
+//     return exp(a[i][j]) / sum;
+// }
+
+Matrix softmax(const Matrix &a) {
+    int rows = a.size();
+    int cols = a[0].size();
+
+    Matrix result(rows, std::vector<float>(cols, 0));
+
+    // Iterate over each column
+    for (int j = 0; j < cols; j++) {
+        
+        float sum = 0;
+        for (int i = 0; i < rows; i++) {
+            sum += exp(a[i][j]);
+        }
+
+        
+        for (int i = 0; i < rows; i++) {
+            result[i][j] = exp(a[i][j]) / sum;
+        }
     }
 
-    return exp(a[i][j]) / sum;
-
+    return result;
 }
 
-float softmaxDerivative(const Matrix &a, int i, int j, int k) {
-    if (j == k) {
-        return softmax(a, i, j) * (1 - softmax(a, i, j));
-    } else {
-        return -softmax(a, i, j) * softmax(a, i, k);
+Matrix softmaxDerivative(const Matrix &softmaxOutput) {
+    int rows = softmaxOutput.size();
+    int cols = softmaxOutput[0].size();
+
+
+    Matrix result(rows, std::vector<float>(cols, 0));
+
+    for (int j = 0; j < cols; j++) {
+
+        for (int i = 0; i < rows; i++) {
+            for (int k = 0; k < rows; k++) {
+                if (i == k) {
+                    result[i][j] += softmaxOutput[i][j] * (1 - softmaxOutput[i][j]);
+                } else {
+                    result[i][j] += -softmaxOutput[i][j] * softmaxOutput[k][j];
+                }
+            }
+        }
     }
+
+    return result;
 }
