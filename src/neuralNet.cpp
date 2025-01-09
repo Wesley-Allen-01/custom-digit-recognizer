@@ -16,12 +16,12 @@ NeuralNet::NeuralNet(int inputSize, std::vector<int> hiddenLayerSizes, int outpu
 
         for (int j = 0; j < layerSize; j++) {
             for (int k = 0; k < previousLayerSize; k++) {
-                weightMatrix[j][k] = (float) std::rand() / RAND_MAX;
+                weightMatrix[j][k] = (float) std::rand() / RAND_MAX * sqrt(2.0 / previousLayerSize);
             }
         }
+
         this->weights.push_back(weightMatrix);
 
-        // std::vector<float> biasVector(layerSize, 0);
         Matrix biasVector(layerSize, std::vector<float>(1, 0));
         this->biases.push_back(biasVector);
 
@@ -34,6 +34,9 @@ void NeuralNet::forward(const Matrix &input) {
     this->activations.push_back(input);
 
     Matrix currentInput = input;
+
+    // normalize input values to be between 0 and 1
+    currentInput = applyActivation(currentInput, sigmoid);
 
     for (int i = 0; i < this->weights.size(); i++) {
         Matrix currentWeights = this->weights[i];
