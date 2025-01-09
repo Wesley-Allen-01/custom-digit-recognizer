@@ -32,16 +32,16 @@ int main() {
 
     // Print out the initial output
     cout << "Initial output: " << initialVal << endl;
-
+    
     // 4. Perform one backward pass (gradient descent step)
     float learningRate = 0.1f;   // choose something noticeable
     net.backward(target, learningRate);
-
+    cout << "Passed the first backward pass" << endl;
     // 5. Forward pass again to see how output has changed
     net.forward(input);
     Matrix newOutput = net.getActivations().back();
     float newVal = newOutput[0][0];
-
+    cout << "Passed the first forward pass" << endl;
     // Print out the output after backprop
     cout << "New output after one backprop step: " << newVal << endl;
 

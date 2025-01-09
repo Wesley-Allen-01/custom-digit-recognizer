@@ -1,7 +1,8 @@
 #include "../include/neuralNet.h"
 #include "../include/cpu_matrix_ops.h"
 #include <random>
-
+#include <iostream>
+using namespace std; 
 NeuralNet::NeuralNet(int inputSize, std::vector<int> hiddenLayerSizes, int outputSize) {
     this->inputSize = inputSize;
     this->outputSize = outputSize;
@@ -53,21 +54,15 @@ void NeuralNet::forward(const Matrix &input) {
 
     Matrix currentInput = input;
 
-    // normalize input values to be between 0 and 1
-    currentInput = applyActivation(currentInput, sigmoid);
-
     for (int i = 0; i < this->weights.size(); i++) {
         Matrix currentWeights = this->weights[i];
         Matrix currentBiases = this->biases[i];
 
         currentInput = matMul(currentWeights, currentInput);
         currentInput = matAdd(currentInput, currentBiases);
-
-        if (i != this->weights.size() - 1) {
-            currentInput = applyActivation(currentInput, sigmoid);
-        } 
-    }
+        currentInput = applyActivation(currentInput, sigmoid);
         this->activations.push_back(currentInput);
+    }
 }
 
 void NeuralNet::backward(const Matrix &target, float learningRate) 
@@ -77,10 +72,12 @@ void NeuralNet::backward(const Matrix &target, float learningRate)
         *    activation that fed into the final layer.
         ***********************************************************************/
         // The last element of 'activations' is our final layer's output
+        cout << "activations size " << this->activations.size() <<endl;;
         Matrix output = this->activations.back();
         
         // The second to last element of 'activations' is the post-activation
         // of the layer before the final layer (i.e., input to the final layer).
+        cout << "activations size " << this->activations.size() << endl;
         Matrix prevActivation = this->activations[this->activations.size() - 2];
 
         /***********************************************************************
