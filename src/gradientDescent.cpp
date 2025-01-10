@@ -2,6 +2,7 @@
 #include "../include/cpu_matrix_ops.h"
 #include <random>
 #include <iostream>
+#include <vector>
 using namespace std;
 
 /*
@@ -64,8 +65,8 @@ float avgMSE(const Matrix &output, const Matrix &target){
 
     }
 
-    avgMSE = sum/(rows*cols);
-    return avgMSE;
+    float avg_MSE = sum/(rows*cols);
+    return avg_MSE;
 }
 
 
@@ -73,40 +74,39 @@ float avgMSE(const Matrix &output, const Matrix &target){
 TRAINING 
 */
 
-int passes = 100;
-float learningRate = 0.1f;
-float accuracyThreshold = 0.9f;
 
-for(int pass = 0; pass < passes; pass++){
-    flaot passLoss = 0.0f
-    vector<Matrix> passPredictions;
-    for (int i = 0; i < trainingData.size();i++){
-        //run the forward pass
-        net.forward(trainingData[i]);
-        Matrix output = net.getActivations().back();
+int main() {
+    int passes = 100;
+    float learningRate = 0.1f;
+    float accuracyThreshold = 0.9f;
 
-        //calculate avgMSE
-        float loss = avgMSE(output,trainingLabels[i]);
-        passLoss += loss;
+    NeuralNet net = NeuralNet(784, {128, 64}, 10);
 
-        //run back propagation and update weights
-        net.backward(trainingLabels[i],learningRate);
+    for(int pass = 0; pass < passes; pass++){
+        float passLoss = 0.0f;
+        vector<Matrix> passPredictions;
+        for (int i = 0; i < trainingData.size();i++){
+            net.forward(trainingData[i]);
+            Matrix output = net.getActivations().back();
 
-        //store the predictions for accuracy
-        passPredictions.push_back(output);
-    }
+            float loss = avgMSE(output,trainingLabels[i]);
+            passLoss += loss;
 
-    //print avg loss for debugging
-    passLoss /= trainingData.size();
-    cout << "Pass " << pass << " - Loss: " << passLoss << " - Accuracy: " << accuracy << endl; 
+            net.backward(trainingLabels[i],learningRate);
 
-    float accuracy = computeAccuracy(passPredictions, trainingLabels);
-    
-    if(accuracy >= accuracyThreshold){
-        cout << "Reached desired accuracy of " << accuracy << " on pass " << pass << ". Stopping training." << endl;
-        break;
-    }
+            passPredictions.push_back(output);
+        }
+
+        passLoss /= trainingData.size();
+        
+
+        float accuracy = computeAccuracy(passPredictions, trainingLabels);
+        
+        cout << "Pass " << pass << " - Loss: " << passLoss << " - Accuracy: " << accuracy << endl; 
+
+        if(accuracy >= accuracyThreshold){
+            cout << "Reached desired accuracy of " << accuracy << " on pass " << pass << ". Stopping training." << endl;
+            break;
+        }
+    } 
 }
-
-
-
