@@ -7,3 +7,5 @@ eigen/
 .vscode/
 
 .DS_Store
+
+mnist_csv/
