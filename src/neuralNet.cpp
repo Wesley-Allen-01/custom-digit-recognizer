@@ -239,3 +239,4 @@ void NeuralNet::backward(const Matrix &target, float learningRate)
 
     
     
+
