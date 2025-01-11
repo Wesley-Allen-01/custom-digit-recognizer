@@ -19,7 +19,7 @@ NeuralNet::NeuralNet(int inputSize, vector<int> hiddenLayerSizes, int outputSize
 
         for (int j = 0; j < layerSize; j++) {
             for (int k = 0; k < previousLayerSize; k++) {
-                weightMatrix[j][k] = (float) rand() / RAND_MAX * sqrt(2.0 / previousLayerSize);
+                weightMatrix[j][k] = (float) rand() / RAND_MAX * sqrt(1.0 / previousLayerSize);
 
             }
         }
@@ -27,7 +27,7 @@ NeuralNet::NeuralNet(int inputSize, vector<int> hiddenLayerSizes, int outputSize
         this->weights.push_back(weightMatrix);
 
 
-        Matrix biasVector(layerSize, vector<float>(1, 0));
+        Matrix biasVector(layerSize, vector<float>(1, (float)rand() / RAND_MAX * 0.01f));
         this->biases.push_back(biasVector);
 
         previousLayerSize = layerSize;
@@ -61,11 +61,7 @@ void NeuralNet::forward(const Matrix &input) {
         Matrix currentWeights = this->weights[i];
         Matrix currentBiases = this->biases[i];
          // Print rows and columns for better debugging
-        cout << "Layer " << i << " Weights: Rows = " << currentWeights.size()
-             << ", Columns = " << (currentWeights.empty() ? 0 : currentWeights[0].size()) << endl;
-        cout << "Layer " << i << " Input: Rows = " << currentInput.size()
-             << ", Columns = " << (currentInput.empty() ? 0 : currentInput[0].size()) << endl;
-
+       
         // Validate matrix dimensions before multiplication
         if (currentWeights[0].size() != currentInput.size()) {
             cerr << "Error: Dimension mismatch during forward pass at layer " << i << endl;
@@ -73,11 +69,11 @@ void NeuralNet::forward(const Matrix &input) {
         }
 
         currentInput = matMul(currentWeights, currentInput);
-        cout << "matMul completed" << endl;
+    
         currentInput = matAdd(currentInput, currentBiases);
-        cout << "matAdd completed" << endl;
+       
         currentInput = applyActivation(currentInput, sigmoid);
-        cout << "applyActivation completed" << endl;
+
         this->activations.push_back(currentInput);
     }
 }
@@ -89,21 +85,15 @@ void NeuralNet::backward(const Matrix &target, float learningRate)
         *    activation that fed into the final layer.
         ***********************************************************************/
         // The last element of 'activations' is our final layer's output
-        cout << "activations size " << this->activations.size() <<endl;;
         Matrix output = this->activations.back();
         
         output = transpose(output);
-        cout << output.size() << endl;
-        cout << output[0].size() << endl;
-        cout << target.size() << endl;
-        cout << target[0].size() << endl;
         if (output.size() != target.size() || output[0].size() != target[0].size()) {
         cerr << "Error: Dimension mismatch between output and target in backward pass." << endl;
         exit(EXIT_FAILURE);
         }
         // The second to last element of 'activations' is the post-activation
         // of the layer before the final layer (i.e., input to the final layer).
-        cout << "activations size " << this->activations.size() << endl;
         Matrix prevActivation = this->activations[this->activations.size() - 2];
 
         /***********************************************************************
@@ -122,7 +112,6 @@ void NeuralNet::backward(const Matrix &target, float learningRate)
         // Create matrix deltaOutput to store the error signal at the output layer
         Matrix deltaOutput = output; // start by copying
           // Print rows and columns for better debugging
-        cout << output.size() << endl;
         for (int i = 0; i < output.size(); i++) {
             for (int j = 0; j < output[0].size(); j++) {
                 // error = (output - target)
@@ -150,10 +139,6 @@ void NeuralNet::backward(const Matrix &target, float learningRate)
         deltaOutput = transpose(deltaOutput);
         // We need prevActivation^T to do deltaOutput * prevActivation^T
         Matrix prevActivationT = transpose(prevActivation);
-        cout << prevActivationT.size() << endl;
-        cout << prevActivationT[0].size() << endl;
-        cout << deltaOutput.size() << endl;
-        cout << deltaOutput[0].size() << endl;
         // dW^(final) = deltaOutput x prevActivation^T
         Matrix dW_last = matMul(deltaOutput, prevActivationT);
 
@@ -205,9 +190,6 @@ void NeuralNet::backward(const Matrix &target, float learningRate)
             // transpose of that:
             Matrix wNextT = transpose(wNext);
 
-            cout << "wNextT dimensions: " << wNextT.size() << "x" << wNextT[0].size() << endl;
-            cout << "currentDelta dimensions: " << currentDelta.size() << "x" << (currentDelta.empty() ? 0 : currentDelta[0].size()) << endl;
-
             // Multiply: wNextT * currentDelta 
             Matrix newDelta = matMul(wNextT, currentDelta);
 
@@ -216,7 +198,7 @@ void NeuralNet::backward(const Matrix &target, float learningRate)
             // We'll use it to get derivative of the sigmoid if we haven't stored z^l.
             Matrix currentActivation = this->activations[layerIndex + 1];
             
-            cout << "newDelta rows: " << newDelta.size() << ", cols: " << (newDelta.empty() ? 0 : newDelta[0].size()) << endl;
+         
 
             // Now elementwise multiply by derivative of sigmoid: a * (1 - a).
             for (int i = 0; i < newDelta.size(); i++) {
@@ -238,12 +220,15 @@ void NeuralNet::backward(const Matrix &target, float learningRate)
 
             // We want dW^l = newDelta * prevLayerActivation^T
             Matrix prevLayerActivationT = transpose(this->activations[layerIndex]);
+            if (layerIndex== 0)
+            {
+                prevLayerActivationT = transpose(prevLayerActivationT);
+            }
             if (newDelta[0].size() != prevLayerActivationT.size()) {
                 cerr << "Error: Dimension mismatch in backward pass at layer " << layerIndex << endl;
                 exit(EXIT_FAILURE);
             }
             Matrix dW = matMul(newDelta, prevLayerActivationT);
-            cout << "Completed Matrix Multiplication" <<endl;
             // Grab the current weights and biases for layerIndex
             Matrix wCurrent = this->weights[layerIndex];
             Matrix bCurrent = this->biases[layerIndex];

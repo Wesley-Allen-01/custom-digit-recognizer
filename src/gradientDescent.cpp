@@ -124,37 +124,32 @@ TRAINING
 
 
 int main() {
-    int passes = 100;
-    float learningRate = 0.1f;
+    int passes = 5;
+    float learningRate = 0.01f;
     float accuracyThreshold = 0.9f;
 
     auto [trainingData, trainingLabels] = loadMNISTData("data/mnist_train.csv");
 
     //debug
-    cout << "Data Loaded" << endl;
-    cout << trainingData[0][0].size() << endl;
-    cout << trainingLabels[0][0].size() <<endl;
+
     NeuralNet net = NeuralNet(784, {128, 64}, 10);
-    cout << "NeuralNet Initialized" <<endl;
 
     for(int pass = 0; pass < passes; pass++){
         float passLoss = 0.0f;
         vector<Matrix> passPredictions;
-        cout << "passPredictions Initialized" << endl;
         for (int i = 0; i < trainingData.size();i++){
             net.forward(trainingData[i]);
-            cout << "Forward pass completed" << endl;
 
             Matrix output = net.getActivations().back();
-            cout << "output calculated" << endl;
+   
 
             Matrix transposedOutput = transpose(output);
             float loss = avgMSE(transposedOutput,trainingLabels[i]);
             passLoss += loss;
-            cout <<"Loss Calculated" << endl;
+  
 
             net.backward(trainingLabels[i],learningRate);
-            cout << "Backward pass completed" << endl;
+      
             passPredictions.push_back(output);
         }
 
