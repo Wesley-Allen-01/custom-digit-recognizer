@@ -2,7 +2,10 @@
 #include "../include/cpu_matrix_ops.h"
 #include <random>
 #include <iostream>
+#include <string>
+#include <fstream>
 #include <vector>
+#include <sstream>
 using namespace std;
 
 /*
@@ -21,9 +24,41 @@ Steps for Implementing Gradient Descent
 LOAD DATA
 */
 
-//I don't have the MNIST set so can you implement Wes?
-vector<Matrix> trainingData;
-vector<Matrix> trainingLabels;
+pair<vector<Matrix>, vector<Matrix>> loadMNISTData(const string &filename) {
+    vector<Matrix> data;
+    vector<Matrix> labels;
+    ifstream file(filename);
+    string line;
+
+    if (!file.is_open()) {
+        cerr << "Error: Unable to open file " << filename << endl;
+        exit(EXIT_FAILURE);
+    }
+
+    string header;
+    getline(file, header);  // discard the header line
+
+    while (getline(file, line)) {
+        stringstream ss(line);
+        string value;
+
+        // Read label (first column)
+        getline(ss, value, ',');
+        int label = stoi(value);
+        Matrix labelMatrix(1, vector<float>(10, 0.0f));
+        labelMatrix[0][label] = 1.0f; // One-hot encoding for the label
+        labels.push_back(labelMatrix);
+
+        // Read pixel data
+        Matrix matrix(1, vector<float>(0));  
+        while (getline(ss, value, ',')) {
+            matrix[0].push_back(stof(value) / 255.0f); //normalize 
+        }
+        data.push_back(matrix);
+    }
+    file.close();
+    return make_pair(data, labels);
+}
 
 /*
 LOSS FUNCTION (using MSE, but could try different losss functions and evaluate)
@@ -54,9 +89,22 @@ float computeAccuracy(const vector<Matrix> &predictions,
 }
 
 float avgMSE(const Matrix &output, const Matrix &target){
+    if (output.empty() || target.empty()) {
+        cerr << "Error: One of the matrices is empty in avgMSE." << endl;
+        exit(EXIT_FAILURE);
+    }
     float sum = 0.0f;
     int rows = output.size();
     int cols = output[0].size();
+
+     if (target.size() != rows || target[0].size() != cols) {
+        cerr << "Error: Matrix size mismatch in avgMSE. Output has size: " 
+             << rows << "x" << cols 
+             << ", Target has size: " << target.size() 
+             << "x" << (target.empty() ? 0 : target[0].size()) << endl;
+        exit(EXIT_FAILURE);
+    }
+
     for (int i = 0; i < rows; i++){
         for (int j = 0; j < cols; j++){
             float diff = output[i][j] - target[i][j];
@@ -80,20 +128,33 @@ int main() {
     float learningRate = 0.1f;
     float accuracyThreshold = 0.9f;
 
+    auto [trainingData, trainingLabels] = loadMNISTData("data/mnist_train.csv");
+
+    //debug
+    cout << "Data Loaded" << endl;
+    cout << trainingData[0][0].size() << endl;
+    cout << trainingLabels[0][0].size() <<endl;
     NeuralNet net = NeuralNet(784, {128, 64}, 10);
+    cout << "NeuralNet Initialized" <<endl;
 
     for(int pass = 0; pass < passes; pass++){
         float passLoss = 0.0f;
         vector<Matrix> passPredictions;
+        cout << "passPredictions Initialized" << endl;
         for (int i = 0; i < trainingData.size();i++){
             net.forward(trainingData[i]);
-            Matrix output = net.getActivations().back();
+            cout << "Forward pass completed" << endl;
 
-            float loss = avgMSE(output,trainingLabels[i]);
+            Matrix output = net.getActivations().back();
+            cout << "output calculated" << endl;
+
+            Matrix transposedOutput = transpose(output);
+            float loss = avgMSE(transposedOutput,trainingLabels[i]);
             passLoss += loss;
+            cout <<"Loss Calculated" << endl;
 
             net.backward(trainingLabels[i],learningRate);
-
+            cout << "Backward pass completed" << endl;
             passPredictions.push_back(output);
         }
 
